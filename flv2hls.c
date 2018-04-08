@@ -15,6 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+#include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -193,8 +194,8 @@ int write_frame(AVFormatContext *s, AVPacket *pkt, AVCodecContext *avctx, AVBitS
 
   
     if (video) {
-  //      pkt->pts = AV_NOPTS_VALUE;
-   //}
+    //      pkt->pts = AV_NOPTS_VALUE;
+   }
     while (bsfc){
 
         AVPacket new_pkt = *pkt;
@@ -213,7 +214,7 @@ int write_frame(AVFormatContext *s, AVPacket *pkt, AVCodecContext *avctx, AVBitS
                 a = AVERROR(ENOMEM);
         }
         if (a > 0) {
-            av_free_packet(pkt);
+           // av_free_packet(pkt);
             new_pkt.destruct = av_destruct_packet;
         } else if (a < 0) {
         }
@@ -222,12 +223,29 @@ int write_frame(AVFormatContext *s, AVPacket *pkt, AVCodecContext *avctx, AVBitS
         bsfc = bsfc->next;
 
     }
-  }
 
     ret = av_interleaved_write_frame(s, pkt);
     avctx->frame_number++;
     return ret;
 }
+char * get_filename(void)
+{
+    char outstr[200];
+    time_t now;
+    struct tm *tmp;
+
+    now = time(NULL);
+    tmp = localtime(&now);
+    if (tmp == NULL) {
+        return NULL;
+    }
+
+    if (strftime(outstr, sizeof(outstr), "%Y-%m-%d_%H:%M:%S", tmp) == 0) {
+        return NULL;
+    }
+    return outstr;
+}
+
 int main(int argc, char **argv)
 {
     //const char start_code[4] = { 0, 0, 0, 1 };
